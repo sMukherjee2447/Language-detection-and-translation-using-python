@@ -22,7 +22,7 @@ for path in langauge_path_list:
     base_name = os.path.splitext(base_name)[0]
     language_name_list.append(base_name)
 
-# print('Names list:', language_name_list)
+print('Names list:', language_name_list)
 
 font_list = []
 font = 2
@@ -383,27 +383,28 @@ all_languages_codes =   {
   }
 # new_all_language_codes = list(all_languages_codes.keys())
 # print(new_all_language_codes)
-
 class PyShine_OCR_APP(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
-        self.ui = uic.loadUi('layout.ui',self)
+        self.ui = uic.loadUi('QT_Designer_1.ui',self)
         self.Image = None
-
         self.language = 'eng'
         self.langu = 'eng'
         self.ui.pushButton.clicked.connect(self.open)
         self.rubberBand = QRubberBand(QRubberBand.Rectangle,self)
-        self.ui.label_2.setMouseTracking(True)
-        self.ui.label_2.installEventFilter(self)
-        self.ui.label_2.setAlignment(PyQt5.QtCore.Qt.AlignTop)
-        self.ui.pushButton_4.clicked.connect(self.detect_language)
-        self.ui.pushButton_2.clicked.connect(self.translate)
+        self.ui.label.setMouseTracking(True)
+        self.ui.label.installEventFilter(self)
+        self.ui.label.setAlignment(PyQt5.QtCore.Qt.AlignTop)
+        self.ui.pushButton_3.clicked.connect(self.detect_language)
+        self.ui.pushButton_4.clicked.connect(self.translate)
+        self.ui.pushButton_2.clicked.connect(self.clear)
+        
+        # self.ui.toolButton_2.clicked.connect(self.open_file)
 
-        self.comboBox.addItems(language_name_list)
+        self.comboBox_2.addItems(language_name_list)
 
-        self.comboBox.currentIndexChanged['QString'].connect(self.update_now)
-        self.comboBox.setCurrentIndex(language_name_list.index(self.language))
+        self.comboBox_2.currentIndexChanged['QString'].connect(self.update_now)
+        self.comboBox_2.setCurrentIndex(language_name_list.index(self.language))
         
         keys = []
         values = []
@@ -412,19 +413,18 @@ class PyShine_OCR_APP(QtWidgets.QMainWindow):
 
         for item in items:
             keys.append(item[0]), values.append(item[1])
-        self.comboBox_3.addItems(keys3)
+        self.comboBox_3.addItems(keys)
 
-        language_value = all_languages_codes.values
         self.comboBox_3.currentIndexChanged['QString'].connect(self.update_translation)
         self.comboBox_3.setCurrentIndex(keys.index(self.langu))
 
         self.font_size = '20'
         self.text = ''
-        self.comboBox_2.addItems(font_list)
-        self.comboBox_2.currentIndexChanged.connect(self.update_font_size)
-        self.comboBox_2.setCurrentIndex(font_list.index(self.font_size))
+        self.comboBox.addItems(font_list)
+        self.comboBox.currentIndexChanged['QString'].connect(self.update_font_size)
+        self.comboBox.setCurrentIndex(font_list.index(self.font_size))
 
-        self.ui.textBrowser.setFontPointSize(int(self.font_size))
+        self.ui.textBrowser_2.setFontPointSize(int(self.font_size))
         self.setAcceptDrops(True)
 
     def update_now(self,value):
@@ -437,11 +437,16 @@ class PyShine_OCR_APP(QtWidgets.QMainWindow):
 
     def update_font_size(self,value):
         self.font_size = value
-        self.ui.textBrowser.setFontPointSize(int(self.font_size))
-        self.ui.textBrowser.setText(str(self.text))
+        self.ui.textBrowser_2.setFontPointSize(int(self.font_size))
+        self.ui.textBrowser_2.setText(str(self.text))
 
-        self.ui.textB_2.setFontPointSize(int(self.font_size))
-        self.ui.textBo.setFontPointSize(int(self.font_size))
+        self.ui.textBrowser.setFontPointSize(int(self.font_size))
+        self.ui.textBrowser_3.setFontPointSize(int(self.font_size))
+
+    def clear(self):
+        self.ui.textBrowser_2.setText("")
+        self.ui.textBrowser.setText("")
+        self.ui.textBrowser_3.setText("")
 
 
     def open(self):
@@ -449,13 +454,13 @@ class PyShine_OCR_APP(QtWidgets.QMainWindow):
         self.image = cv2.imread(str(filename[0]))
         frame = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         image = QImage(frame,frame.shape[1],frame.shape[0], frame.strides[0],QImage.Format_RGB888)
-        self.ui.label_2.setPixmap(QPixmap.fromImage(image))
+        self.ui.label.setPixmap(QPixmap.fromImage(image))
 
     def image_to_text(self,crop_cvimage):
         gray = cv2.cvtColor(crop_cvimage,cv2.COLOR_BGR2GRAY)
         gray = cv2.medianBlur(gray,1)
         crop = Image.fromarray(gray)
-        text = pytesseract.image_to_string(crop)
+        text = pytesseract.image_to_string(crop, lang=self.language)
         print('Text:',text)
         return text
 
@@ -819,30 +824,32 @@ class PyShine_OCR_APP(QtWidgets.QMainWindow):
         s = str.join(sentence)
 
         print ("Language for the given text is: ", s)
-        self.ui.textB_2.setText(s)
+        self.ui.textBrowser.setText(s)
         return s
 
     def translate(self, text):
         translator = google_translator() ##initialing the module 
         translated_lang=translator.translate(self.text, lang_tgt = self.langu)
         print("Translated Text-->>",translated_lang)
-        self.ui.textBo.setText(str(translated_lang))
+        self.ui.textBrowser_3.setText(str(translated_lang))
 
+    def open_file(self):
+        self.ui = uic.loadUi('help.ui',self)
 
 
     def eventFilter(self,source,event):
         width = 0
         height = 0
-        if (event.type() == QEvent.MouseButtonPress and source is self.ui.label_2):
+        if (event.type() == QEvent.MouseButtonPress and source is self.ui.label):
             self.org = self.mapFromGlobal(event.globalPos())
             self.left_top = event.pos()
             self.rubberBand.setGeometry(QRect(self.org,QSize()))
             self.rubberBand.show()
-        elif (event.type() == QEvent.MouseMove and source is self.ui.label_2):
+        elif (event.type() == QEvent.MouseMove and source is self.ui.label):
             if self.rubberBand.isVisible():
                 self.rubberBand.setGeometry(QRect(self.org,self.mapFromGlobal(event.globalPos())).normalized())
         
-        elif(event.type() == QEvent.MouseButtonRelease and source is self.ui.label_2):
+        elif(event.type() == QEvent.MouseButtonRelease and source is self.ui.label):
             if self.rubberBand.isVisible():
                 self.rubberBand.hide()
                 rect = self.rubberBand.geometry()
@@ -856,7 +863,7 @@ class PyShine_OCR_APP(QtWidgets.QMainWindow):
                 self.crop = self.image[self.y1:self.y2, self.x1:self.x2]
                 cv2.imwrite('cropped.png',self.crop)
                 self.text = self.image_to_text(self.crop)
-                self.ui.textBrowser.setText(str(self.text)) 
+                self.ui.textBrowser_2.setText(str(self.text)) 
             else:
                 self.rubberBand.hide()
         else:
