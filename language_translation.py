@@ -381,8 +381,7 @@ all_languages_codes =   {
   	'zu': 'Zulu',
   	'zul': 'Zulu'
   }
-# new_all_language_codes = list(all_languages_codes.keys())
-# print(new_all_language_codes)
+
 class PyShine_OCR_APP(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
